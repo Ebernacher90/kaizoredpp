@@ -66,3 +66,18 @@ SET_PAL_DEFAULT EQU $ff
 	const PAL_BADGE     ; $22
 	const PAL_CAVE      ; $23
 	const PAL_GAMEFREAK ; $24
+	const PAL_BULBASAUR ; $25
+	const PAL_IVYSAUR	; $26
+	const PAL_VENUSAUR	; $27
+	const PAL_CHARMANDER; $28
+	const PAL_CHARMELEON; $29
+	const PAL_CHARIZARD	; $2A
+	const PAL_SQUIRTLE	; $2B
+	const PAL_WARTORTLE	; $2C
+	const PAL_BLASTOISE	; $2D
+	const PAL_CATERPIE	; $2E
+	const PAL_METAPOD	; $2F
+	const PAL_BUTTERFREE; $30
+	const PAL_WEEDLE	; $31
+	const PAL_KAKUNA	; $32
+	const PAL_BEEDRILL	; $33
