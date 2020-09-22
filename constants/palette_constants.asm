@@ -81,3 +81,8 @@ SET_PAL_DEFAULT EQU $ff
 	const PAL_WEEDLE	; $31
 	const PAL_KAKUNA	; $32
 	const PAL_BEEDRILL	; $33
+	const PAL_PIDGEY	; $34
+	const PAL_PIDGEOTTO ; $35
+	const PAL_PIDGEOT	; $36
+	const PAL_RATTATA	; $37
+	const PAL_RATICATE	; $38
