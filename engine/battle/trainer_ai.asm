@@ -146,11 +146,11 @@ AIMoveChoiceModification1:
 	jr .nextMove
 
 StatusAilmentMoveEffects:
-	db $01 ; unused sleep effect
+	db EFFECT_01 ; unused sleep effect
 	db SLEEP_EFFECT
 	db POISON_EFFECT
 	db PARALYZE_EFFECT
-	db $FF
+	db -1 ; end
 
 ; slightly encourage moves with specific effects.
 ; in particular, stat-modifying moves and other move effects
@@ -294,7 +294,7 @@ TrainerAI:
 	ret z ; if not a trainer, we're done here
 	ld a, [wLinkState]
 	cp LINK_STATE_BATTLING
-	ret z
+	ret z ; if in a link battle, we're done as well
 	ld a, [wTrainerClass] ; what trainer class is this?
 	dec a
 	ld c, a
@@ -394,7 +394,7 @@ SabrinaAI:
 	ret nc
 	jp AIUseHyperPotion
 
-Sony2AI:
+Rival2AI:
 	cp 13 percent - 1
 	ret nc
 	ld a, 5
@@ -402,7 +402,7 @@ Sony2AI:
 	ret nc
 	jp AIUsePotion
 
-Sony3AI:
+Rival3AI:
 	cp 13 percent - 1
 	ret nc
 	ld a, 5

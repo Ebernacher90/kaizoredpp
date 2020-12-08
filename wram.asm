@@ -239,31 +239,39 @@ SECTION "OAM Buffer", WRAM0
 wOAMBuffer::
 ; buffer for OAM data. Copied to OAM by DMA
 	ds 4 * 40
+wOAMBufferEnd::
 
 wTileMap::
 ; buffer for tiles that are visible on screen (20 columns by 18 rows)
-	ds 20 * 18
+	ds SCREEN_WIDTH * SCREEN_HEIGHT
 
-wSerialPartyMonsPatchList::
-; list of indexes to patch with SERIAL_NO_DATA_BYTE after transfer
-
+UNION
 wTileMapBackup::
 ; buffer for temporarily saving and restoring current screen's tiles
 ; (e.g. if menus are drawn on top)
-;	ds 20 * 18
+	ds SCREEN_WIDTH * SCREEN_HEIGHT
 
+NEXTU
+wSerialPartyMonsPatchList::
+; list of indexes to patch with SERIAL_NO_DATA_BYTE after transfer
 	ds 200
 
 wSerialEnemyMonsPatchList::
 ; list of indexes to patch with SERIAL_NO_DATA_BYTE after transfer
 	ds 200
+ENDU
 
 	ds 80
 
-wTempPic::
+UNION
 wOverworldMap::
 	ds 1300
 wOverworldMapEnd::
+
+NEXTU
+wTempPic::
+	ds 7 * 7 tiles
+ENDU
 
 wRedrawRowOrColumnSrcTiles::
 ; the tiles of the row or column to be redrawn by RedrawRowOrColumn
@@ -399,9 +407,8 @@ wUnknownSerialCounter::
 ; 2 bytes
 
 wEnteringCableClub::
-	ds 1
-
-	ds 1
+; 1 byte
+	ds 2
 
 wWhichTradeMonSelectionMenu::
 ; $00 = player mons
@@ -509,15 +516,24 @@ wAnimPalette::
 
 	ds 29
 
+UNION
 wNPCMovementDirections2::
+	ds 10
 
+NEXTU
 wSwitchPartyMonTempBuffer::
 ; temporary buffer when swapping party mon data
+	ds 49
+
+NEXTU
 	ds 10
 
 wNumStepsToTake::
 ; used in Pallet Town scripted movement
-	ds 49
+	ds 1
+ENDU
+
+	ds 10
 
 wRLEByteCount::
 	ds 1
@@ -595,7 +611,7 @@ wTotalPayDayMoney::
 wSafariEscapeFactor::
 	ds 1
 wSafariBaitFactor::
-	ds 1;
+	ds 1
 
 	ds 1
 
@@ -823,8 +839,6 @@ wCoordIndex::
 
 wOptionsTextSpeedCursorX::
 
-wBoxNumString::
-
 wTrainerInfoTextBoxWidthPlus1::
 
 wSwappedMenuItem::
@@ -860,6 +874,8 @@ wFlyAnimUsingCoordList::
 wPlayerSpinInPlaceAnimFrameDelay::
 
 wPlayerSpinWhileMovingUpOrDownAnimDeltaY::
+
+wBoxNumString::
 
 wHiddenObjectFunctionArgument::
 
@@ -1350,7 +1366,9 @@ wExpAmountGained::
 ; 2-byte big-endian number
 ; the total amount of exp a mon gained
 
-wcf4b:: ds 2 ; storage buffer for various strings
+wcf4b::
+; storage buffer for various strings
+	ds 2
 
 wGainBoostedExp::
 	ds 1
@@ -1978,15 +1996,15 @@ wMonHGrowthRate::
 
 wMonHLearnset::
 ; bit field
-	flag_array 50 + 5
+	flag_array NUM_TMS + NUM_HMS
 	ds 1
+wMonHeaderEnd::
 
-wSavedTilesetType::
+wSavedTileAnimations::
 ; saved at the start of a battle and then written back at the end of the battle
 	ds 1
 
 	ds 2
-
 
 wDamage::
 	ds 2
@@ -2725,7 +2743,8 @@ wPokemonMansionB1FCurScript::
 wVictoryRoad2FCurScript::
 	ds 1
 wVictoryRoad3FCurScript::
-	ds 2
+	ds 1
+	ds 1
 wFightingDojoCurScript::
 	ds 1
 wSilphCo2FCurScript::
@@ -2972,7 +2991,9 @@ wFlags_D733::
 wBeatLorelei::
 ; bit 1: set when you beat Lorelei and reset in Indigo Plateau lobby
 ; the game uses this to tell when Elite 4 events need to be reset
-	ds 2
+	ds 1
+
+	ds 1
 
 wd736::
 ; bit 0: check if the player is standing on a door and make him walk down a step if so
@@ -3010,33 +3031,36 @@ wSecondLockTrashCanIndex::
 	ds 1
 
 	ds 2
+
 wEventFlags::
 	flag_array NUM_EVENTS
 
+
+UNION
+wGrassRate:: db
+wGrassMons::
+	ds 10 * 2
+
+	ds 8
+
+wWaterRate:: db
+wWaterMons::
+	ds 10 * 2
+
+NEXTU
 wLinkEnemyTrainerName::
 ; linked game's trainer name
+	ds NAME_LENGTH
 
-wGrassRate::
 	ds 1
 
-wGrassMons::
-	;ds 20
-
-	ds 11
-; Overload wGrassMons
 wSerialEnemyDataBlock::
+;	ds $1a8
+
 	ds 9
 
 wEnemyPartyCount:: ds 1
 wEnemyPartyMons::  ds PARTY_LENGTH + 1
-
-; Overload enemy party data
-UNION
-
-wWaterRate:: db
-wWaterMons:: db
-
-NEXTU
 
 wEnemyMons::
 wEnemyMon1:: party_struct wEnemyMon1
@@ -3119,6 +3143,7 @@ wBoxDataEnd::
 
 
 SECTION "Stack", WRAM0
+
 wStack::
 
 

@@ -65,7 +65,7 @@ rLCDC_DEFAULT EQU %11100011
 	call WriteDMACodeToHRAM
 
 	xor a
-	ldh [hTilesetType], a
+	ldh [hTileAnimations], a
 	ldh [rSTAT], a
 	ldh [hSCX], a
 	ldh [hSCY], a
@@ -126,7 +126,7 @@ ClearVram::
 
 
 StopAllSounds::
-	ld a, BANK(Audio1_UpdateMusic)
+	ld a, BANK("Audio Engine 1")
 	ld [wAudioROMBank], a
 	ld [wAudioSavedROMBank], a
 	xor a

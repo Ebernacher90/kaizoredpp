@@ -26,7 +26,7 @@ DisplayTitleScreen:
 	ld a, $1
 	ldh [hAutoBGTransferEnabled], a
 	xor a
-	ldh [hTilesetType], a
+	ldh [hTileAnimations], a
 	ldh [hSCX], a
 	ld a, $40
 	ldh [hSCY], a
@@ -119,10 +119,10 @@ DisplayTitleScreen:
 	call EnableLCD
 
 IF DEF(_RED)
-	ld a, CHARMANDER ; which Pokemon to show first on the title screen
+	ld a, STARTER1 ; which Pokemon to show first on the title screen
 ENDC
 IF DEF(_BLUE)
-	ld a, SQUIRTLE ; which Pokemon to show first on the title screen
+	ld a, STARTER2 ; which Pokemon to show first on the title screen
 ENDC
 	ld [wTitleMonSpecies], a
 	call LoadTitleMonSprite

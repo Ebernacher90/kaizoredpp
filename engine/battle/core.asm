@@ -51,7 +51,7 @@ SlidePlayerAndEnemySilhouettesOnScreen:
 	ldh [hWY], a
 	ldh [rWY], a
 	xor a
-	ldh [hTilesetType], a
+	ldh [hTileAnimations], a
 	ldh [hSCY], a
 	dec a
 	ld [wUpdateSpritesEnabled], a
@@ -1098,7 +1098,7 @@ ChooseNextMon:
 	ld a, [wLinkState]
 	cp LINK_STATE_BATTLING
 	jr nz, .notLinkBattle
-	inc a
+	inc a ; 1
 	ld [wActionResultOrTookBattleTurn], a
 	call LinkBattleExchangeData
 .notLinkBattle
@@ -1132,22 +1132,22 @@ ChooseNextMon:
 HandlePlayerBlackOut:
 	ld a, [wLinkState]
 	cp LINK_STATE_BATTLING
-	jr z, .notSony1Battle
+	jr z, .notRival1Battle
 	ld a, [wCurOpponent]
 	cp OPP_RIVAL1
-	jr nz, .notSony1Battle
-	hlcoord 0, 0  ; sony 1 battle
+	jr nz, .notRival1Battle
+	hlcoord 0, 0  ; rival 1 battle
 	lb bc, 8, 21
 	call ClearScreenArea
 	call ScrollTrainerPicAfterBattle
 	ld c, 40
 	call DelayFrames
-	ld hl, Sony1WinText
+	ld hl, Rival1WinText
 	call PrintText
 	ld a, [wCurMap]
 	cp OAKS_LAB
 	ret z            ; starter battle in oak's lab: don't black out
-.notSony1Battle
+.notRival1Battle
 	ld b, SET_PAL_BATTLE_BLACK
 	call RunPaletteCommand
 	ld hl, PlayerBlackedOutText2
@@ -1164,8 +1164,8 @@ HandlePlayerBlackOut:
 	scf
 	ret
 
-Sony1WinText:
-	text_far _Sony1WinText
+Rival1WinText:
+	text_far _Rival1WinText
 	text_end
 
 PlayerBlackedOutText2:
@@ -1724,7 +1724,7 @@ SendOutMon:
 	ld hl, wEnemyMonHP
 	ld a, [hli]
 	or [hl] ; is enemy mon HP zero?
-	jp z, .skipDrawingEnemyHUDAndHPBar; if HP is zero, skip drawing the HUD and HP bar
+	jp z, .skipDrawingEnemyHUDAndHPBar ; if HP is zero, skip drawing the HUD and HP bar
 	call DrawEnemyHUDAndHPBar
 .skipDrawingEnemyHUDAndHPBar
 	call DrawPlayerHUDAndHPBar
@@ -2013,18 +2013,21 @@ DisplayBattleMenu::
 .menuselected
 	ld [wTextBoxID], a
 	call DisplayTextBoxID
+ ; handle menu input if it's not the old man tutorial
 	ld a, [wBattleType]
 	dec a
-	jp nz, .handleBattleMenuInput ; handle menu input if it's not the old man tutorial
+	jp nz, .handleBattleMenuInput
 ; the following happens for the old man tutorial
+	; Temporarily save the player name in wLinkEnemyTrainerName.
+	; Since wLinkEnemyTrainerName == wGrassRate, this affects wild encounters.
+	; The wGrassRate byte and following wGrassMons buffer are supposed
+	; to get overwritten when entering a map with wild Pokémon,
+	; but an oversight prevents this in Cinnabar and Route 21,
+	; so the infamous MissingNo. glitch can show up.
 	ld hl, wPlayerName
-	ld de, wGrassRate
+	ld de, wLinkEnemyTrainerName
 	ld bc, NAME_LENGTH
-	call CopyData  ; temporarily save the player name in unused space,
-	               ; which is supposed to get overwritten when entering a
-	               ; map with wild Pokémon. Due to an oversight, the data
-	               ; may not get overwritten (cinnabar) and the infamous
-	               ; Missingno. glitch can show up.
+	call CopyData
 	ld hl, .oldManName
 	ld de, wPlayerName
 	ld bc, NAME_LENGTH
@@ -2206,7 +2209,7 @@ BagWasSelected:
 OldManItemList:
 	db 1 ; # items
 	db POKE_BALL, 50
-	db -1
+	db -1 ; end
 
 DisplayPlayerBag:
 	; get the pointer to player's bag when in a normal battle
@@ -2600,13 +2603,13 @@ SelectMenuItem:
 	call HandleMenuInput
 	ld hl, hFlagsFFF6
 	res 1, [hl]
-	bit 6, a
-	jp nz, SelectMenuItem_CursorUp ; up
-	bit 7, a
-	jp nz, SelectMenuItem_CursorDown ; down
-	bit 2, a
-	jp nz, SwapMovesInMenu ; select
-	bit 1, a ; B, but was it reset above?
+	bit BIT_D_UP, a
+	jp nz, SelectMenuItem_CursorUp
+	bit BIT_D_DOWN, a
+	jp nz, SelectMenuItem_CursorDown
+	bit BIT_SELECT, a
+	jp nz, SwapMovesInMenu
+	bit BIT_B_BUTTON, a
 	push af
 	xor a
 	ld [wMenuItemToSwap], a
@@ -4101,7 +4104,7 @@ CheckForDisobedience:
 	call GetCurrentMove
 .canUseMove
 	ld a, $1
-	and a; clear Z flag
+	and a ; clear Z flag
 	ret
 .cannotUseMove
 	xor a ; set Z flag
@@ -4485,7 +4488,7 @@ CalculateDamage:
 	ld b, 4
 	call Divide
 
-; Update wCurDamage. 
+; Update wCurDamage.
 ; Capped at MAX_NEUTRAL_DAMAGE - MIN_NEUTRAL_DAMAGE: 999 - 2 = 997.
 	ld hl, wDamage
 	ld b, [hl]
@@ -4574,7 +4577,7 @@ JumpToOHKOMoveEffect:
 INCLUDE "data/battle/unused_critical_hit_moves.asm"
 
 ; determines if attack is a critical hit
-; azure heights claims "the fastest pokémon (who are,not coincidentally,
+; Azure Heights claims "the fastest pokémon (who are, not coincidentally,
 ; among the most popular) tend to CH about 20 to 25% of the time."
 CriticalHitTest:
 	xor a
@@ -6272,7 +6275,7 @@ DoBattleTransitionAndInitBattleVariables:
 	ldh [hAutoBGTransferEnabled], a
 	ldh [hWY], a
 	ldh [rWY], a
-	ldh [hTilesetType], a
+	ldh [hTileAnimations], a
 	ld hl, wPlayerStatsToDouble
 	ld [hli], a
 	ld [hli], a
@@ -6302,7 +6305,7 @@ LoadPlayerBackPic:
 	dec a ; is it the old man tutorial?
 	ld de, RedPicBack
 	jr nz, .next
-	ld de, OldManPic
+	ld de, OldManPicBack
 .next
 	ld a, BANK(RedPicBack)
 	call UncompressSpriteFromDE
@@ -6862,8 +6865,8 @@ _InitBattleCommon:
 	ld [wLetterPrintingDelayFlags], a
 	pop af
 	ld [wMapPalOffset], a
-	ld a, [wSavedTilesetType]
-	ldh [hTilesetType], a
+	ld a, [wSavedTileAnimations]
+	ldh [hTileAnimations], a
 	scf
 	ret
 .emptyString
